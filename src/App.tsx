@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 interface Quote {
-  id: number;
+  _id: string;
   text: string;
   author: string;
   dateAdded: string;
@@ -14,13 +14,13 @@ interface Quote {
 
 const Quote: React.FC<{ quote: Quote }> = ({ quote }) => {
   return (
-    <div className="mb-4 w-[] md:w-[80%]">
-      <p className="text-lg font-bold">{quote.content}</p>
-      <p className="text-sm">- {quote.author}</p>
-      <p className="text-xs">{quote.dateAdded}</p>
-      <div className="flex flex-wrap">
+    <div className="mb-4 w-[95%] md:w-[80%] bg-custom-blue rounded-md p-4 shadow-md">
+      <p className="text-lg font-bold text-white">{quote.content}</p>
+      <p className="text-sm text-white">- {quote.author}</p>
+      <p className="text-xs text-white">{quote.dateAdded}</p>
+      <div className="flex flex-wrap mt-2">
         {quote.tags.map((tag, index) => (
-          <span key={index} className="mr-2 bg-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs">{tag}</span>
+          <span key={index} className="mr-2 bg-blue-200 text-blue-800 px-2 py-1 rounded-full text-xs">{tag}</span>
         ))}
       </div>
     </div>
@@ -34,33 +34,26 @@ const App: React.FC = () => {
   const [quotesPerPage] = useState<number>(5);
   const [loading, setLoading] = useState(false)
   const [quotes, setQuotes] =useState<Quote[]>([]);
+
+  
   const fetchQuotes =async(page: number)=>{
     setLoading(true)
-    let res = await fetch(`https://api.quotable.io/quotes?page=${page}`)
-    let response = await res.json()
-    console.log("dff", response)
-    if(res.ok){
-      const newArray = [...quotes, ...response.results];
+    let res = await fetch(`https://api.quotable.io/quotes?limit=100`)
+    let response = await res?.json()
+    
+    if(res?.ok){
+      const newArray = [...quotes, ...response?.results];
+      
       setQuotes(newArray);
-
-
-      // for(){
-
-      // }
-
-      // if(response.page < response.totalPages && quotes.length < 60){
-      //   setCurrentPage(currentPage + 1)
-      //   fetchQuotes(currentPage)
-      // }
-      // else{
-      //   setLoading(false)
-      // }
+      
           
     }
+    setLoading(false)
   
   }
 
   useEffect(()=>{
+    
     fetchQuotes(currentPage)
   }, [])
 
@@ -79,51 +72,86 @@ const App: React.FC = () => {
       quote.dateAdded.includes(dateFilter);
   });
 
-  // Pagination
-  const indexOfLastQuote = currentPage * quotesPerPage;
-  const indexOfFirstQuote = indexOfLastQuote - quotesPerPage;
-  const currentQuotes = filteredQuotes//.slice(indexOfFirstQuote, indexOfLastQuote);
+  const [sortBy, setSortBy] = useState<string>('id'); // Default sort by ID
+
+  const sortedQuotes = filteredQuotes.slice().sort((a, b) => {
+    if (sortBy === 'id') {
+      return a._id.localeCompare(b._id); // Compare as strings
+    } else if (sortBy === 'author') {
+      return a.author.localeCompare(b.author);
+    }
+    return 0;
+  });
+
+  const handleSortByChange = (value: string) => {
+    setSortBy(value);
+  };
+
+ 
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-  console.log("usiis", currentQuotes)
+  console.log("usiis", sortedQuotes)
 
   return (
-    <div className="container mx-auto mt-8 flex justify-center flex-col">
-      <h1 className="text-3xl font-bold mb-4 text-center">Quote Library</h1>
-      <div className="mb-4 flex justify-center gap-5">
+    <div className="container mx-auto  flex justify-center flex-col bg-[#03031b] text-white min-h-[100vh]">
+      <h1 className="text-3xl font-bold mb-4 text-center mt-8 ">Quote Library</h1>
+      <div className="mb-4 grid items-center md:flex justify-center gap-5">
         <input
           type="text"
           placeholder="Filter by author name"
-          className="border border-gray-300 px-4 py-2 rounded mr-2"
+          className="border border-gray-300 px-4 py-2 mr-2 rounded-xl shadow-md focus:outline-none text-black "
           value={authorFilter}
           onChange={handleAuthorFilterChange}
         />
         <input
           type="text"
           placeholder="Filter by date added"
-          className="border border-gray-300 px-4 py-2 rounded"
+          className="border border-gray-300 px-4 py-2 rounded-xl shadow-md focus:outline-none text-black"
           value={dateFilter}
           onChange={handleDateFilterChange}
         />
       </div>
-      <div className='flex justify-center flex-col w-full  items-center'>
-        {currentQuotes.map((quote) => (
-          <Quote key={quote.id} quote={quote} />
+
+      <div className="mb-4 flex justify-center gap-5">
+        <button
+          className={`px-3 py-1 rounded ${sortBy === 'id' ? 'bg-blue-500 text-white' : 'bg-blue-200 text-blue-800'}`}
+          onClick={() => handleSortByChange('id')}
+        >
+          Sort by ID
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${sortBy === 'author' ? 'bg-blue-500 text-white' : 'bg-blue-200 text-blue-800'}`}
+          onClick={() => handleSortByChange('author')}
+        >
+          Sort by Author
+        </button>
+      </div>
+
+      {(sortedQuotes.length > 0 && !loading) &&
+      <div className='flex justify-center flex-col w-full items-center'>
+        {sortedQuotes.map((quote, index) => (
+          <Quote key={index} quote={quote} />
         ))}
       </div>
-      {/* <nav className="mt-4">
-        <ul className="pagination">
-          {Array.from({ length: Math.ceil(filteredQuotes.length / quotesPerPage) }).map((_, index) => (
-            <li key={index} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-              <button onClick={() => paginate(index + 1)} className="page-link">
-                {index + 1}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav> */}
-    </div>
-  );
+      
+      }
+
+      {(loading && sortedQuotes.length == 0) && 
+      <>
+        <p className='text-center'>Loading...</p>
+      </>
+      }
+
+      {sortedQuotes.length <= 0 && !loading &&
+      <div className='flex justify-center flex-col w-full items-center'>
+        <p className='text-center'>No Qoutes Found</p>
+      </div>
+      
+      }
+
+      
+      {/* Pagination and other elements... */}
+    </div>  );
 };
 
 export default App;
