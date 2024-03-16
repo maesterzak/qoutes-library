@@ -11,7 +11,7 @@ Quote Library is a React.js project aimed at providing a platform to browse and 
 To get started, clone the Quote Library repository from GitHub:
 
 ```bash
-git clone https://github.com/maesterzak/qoutes-library>
+git clone https://github.com/maesterzak/qoutes-library
 ```
 
 ### Installing Dependencies
