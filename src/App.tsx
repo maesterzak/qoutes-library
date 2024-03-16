@@ -38,6 +38,7 @@ const App: React.FC = () => {
   
   const fetchQuotes =async(page: number)=>{
     setLoading(true)
+    try{
     let res = await fetch(`https://api.quotable.io/quotes?limit=100`)
     let response = await res?.json()
     
@@ -48,6 +49,10 @@ const App: React.FC = () => {
       
           
     }
+  }
+  catch(e){
+    
+  }
     setLoading(false)
   
   }
